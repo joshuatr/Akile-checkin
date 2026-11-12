@@ -9,16 +9,16 @@ on:
 jobs:
   checkin:
     runs-on: ubuntu-latest
-    # 1. 新增：使用矩阵策略依次运行两个账号（max-parallel: 1 可避免同时并发触发风控）
     strategy:
       fail-fast: false
       max-parallel: 1
       matrix:
+        # 这里只写纯文本标识，不能直接放 secrets
         account:
-          - email: ${{ secrets.AKILE_EMAIL }}
-            password: ${{ secrets.AKILE_PASSWORD }}
-          - email: ${{ secrets.AKILE_EMAIL_2 }}
-            password: ${{ secrets.AKILE_PASSWORD_2 }}
+          - email_key: AKILE_EMAIL
+            pass_key: AKILE_PASSWORD
+          - email_key: AKILE_EMAIL_2
+            pass_key: AKILE_PASSWORD_2
 
     steps:
       - name: Checkout code
@@ -33,11 +33,9 @@ jobs:
         run: |
           pip install -r requirements.txt
 
-      # 2. 修改：将矩阵中的账号密码传入脚本原本读取的环境变量中
+      # 在 steps 内部使用 secrets[...] 动态读取对应的密钥
       - name: Run Akile Check-in
         env:
-          AKILE_EMAIL: ${{ matrix.account.email }}
-          AKILE_PASSWORD: ${{ matrix.account.password }}
-          # 如果你之前还配置了 Server酱 等推送变量，保留在下面即可，例如：
-          # SENDKEY: ${{ secrets.SENDKEY }}
+          AKILE_EMAIL: ${{ secrets[matrix.account.email_key] }}
+          AKILE_PASSWORD: ${{ secrets[matrix.account.pass_key] }}
         run: python Akile-Checkin.py
