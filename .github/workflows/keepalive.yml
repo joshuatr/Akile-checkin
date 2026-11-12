@@ -1,0 +1,24 @@
+name: Keepalive
+
+on:
+  schedule:
+    # 每隔 45 天的 UTC 00:00 自动运行一次（远早于 GitHub 的 60 天限制）
+    - cron: '0 0 */45 * *'
+  workflow_dispatch: # 支持手动点击测试
+
+permissions:
+  contents: write
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Commit empty change to keep workflow active
+        run: |
+          git config --local user.email "github-actions[bot]@://github.com"
+          git config --local user.name "github-actions[bot]"
+          git commit --allow-empty -m "chore: keep workflow active"
+          git push
